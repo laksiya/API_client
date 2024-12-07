@@ -13,10 +13,10 @@
 </head>
 <body>
     <h1>My Web Application</h1>
-    <button class="button" onclick="sendRequest('button1')">Button 1</button>
-    <button class="button" onclick="sendRequest('button2')">Button 2</button>
+    <button class="button" onclick="sendRequest('get-time')">Get Time</button>
+    <button class="button" onclick="showImage('nasa-image')">NASA Image</button>
     <button class="button" onclick="sendRequest('button3')">Button 3</button>
-    
+
     <div id="responseText" style="margin: 20px;"></div>
 
     <script>
@@ -24,7 +24,31 @@
             try {
                 const response = await fetch(`/api/${button}`, { method: 'POST' });
                 const data = await response.json();
-                document.getElementById('responseText').innerText = data['message'];
+                const message = data['message'];
+
+                document.getElementById('responseText').innerHTML = `
+                    <h2>${message}</h2>
+                `;
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('responseText').innerText = 'Error occurred while processing request';
+            }
+        }
+
+        async function showImage(imageId) {
+            try {
+                const response = await fetch('/api/nasa-image', { method: 'POST' });
+                const data = await response.json();
+
+                const title = data['title'];
+                const explanation = data['explanation'];
+                const imageUrl = data['url'];
+
+                document.getElementById('responseText').innerHTML = `
+                    <h2>${title}</h2>
+                    <p>${explanation}</p>
+                    <img src="${imageUrl}" style="max-width: 100%; margin-top: 20px;">
+                `;
             } catch (error) {
                 console.error('Error:', error);
                 document.getElementById('responseText').innerText = 'Error occurred while processing request';
