@@ -9,22 +9,6 @@
             font-size: 16px;
             cursor: pointer;
         }
-        #streamContainer {
-            margin: 20px;
-            max-width: 640px;
-            display: none; /* Hidden by default */
-        }
-        .error-message {
-            color: red;
-            padding: 10px;
-            margin: 10px;
-            border: 1px solid red;
-            display: none;
-        }
-        .video-feed {
-            width: 100%;
-            border: 1px solid #ccc;
-        }
     </style>
 </head>
 <body>
@@ -32,90 +16,20 @@
     <button class="button" onclick="sendRequest('button1')">Button 1</button>
     <button class="button" onclick="sendRequest('button2')">Button 2</button>
     <button class="button" onclick="sendRequest('button3')">Button 3</button>
-    <button class="button" id="streamButton" onclick="toggleStream()">Start Stream</button>
     
-    <div id="result"></div>
-    <div id="errorMessage" class="error-message"></div>
-    <div id="streamContainer">
-        <video id="videoFeed" class="video-feed" autoplay></video>
-    </div>
+    <div id="responseText" style="margin: 20px;"></div>
 
     <script>
-        let isStreaming = false;
-        let stream = null;
-
-        function sendRequest(button) {
-            fetch(`/api/${button}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('result').innerHTML = data.message;
-            })
-            .catch(error => {
+        async function sendRequest(button) {
+            try {
+                const response = await fetch(`/api/${button}`, { method: 'POST' });
+                const data = await response.json();
+                document.getElementById('responseText').innerText = data['message'];
+            } catch (error) {
                 console.error('Error:', error);
-                document.getElementById('result').innerHTML = 'Error occurred';
-            });
-        }
-
-        function showError(message) {
-            const errorElement = document.getElementById('errorMessage');
-            errorElement.style.display = 'block';
-            errorElement.innerHTML = message;
-            // Hide error after 5 seconds
-            setTimeout(() => {
-                errorElement.style.display = 'none';
-            }, 5000);
-        }
-
-        async function toggleStream() {
-            const streamButton = document.getElementById('streamButton');
-            const streamContainer = document.getElementById('streamContainer');
-            const videoElement = document.getElementById('videoFeed');
-
-            if (!isStreaming) {
-                try {
-                    // Request access to webcam
-                    stream = await navigator.mediaDevices.getUserMedia({ 
-                        video: true,
-                        audio: false // Set to true if you want audio
-                    });
-                    
-                    videoElement.srcObject = stream;
-                    streamContainer.style.display = 'block';
-                    streamButton.textContent = 'Stop Stream';
-                    isStreaming = true;
-                } catch (error) {
-                    console.error('Error accessing webcam:', error);
-                    showError(`Could not access webcam: ${error.message || 'Please check your camera permissions'}`);
-                    streamButton.textContent = 'Start Stream';
-                    isStreaming = false;
-                }
-            } else {
-                try {
-                    // Stop all tracks
-                    if (stream) {
-                        stream.getTracks().forEach(track => track.stop());
-                    }
-                    videoElement.srcObject = null;
-                    streamContainer.style.display = 'none';
-                    streamButton.textContent = 'Start Stream';
-                    isStreaming = false;
-                } catch (error) {
-                    console.error('Error stopping stream:', error);
-                    showError('Error stopping stream. Please refresh the page.');
-                }
+                document.getElementById('responseText').innerText = 'Error occurred while processing request';
             }
         }
-
-        // Add error handling for video element
-        document.getElementById('videoFeed').onerror = function() {
-            showError('Error loading video stream');
-            toggleStream(); // Stop the stream
-        };
     </script>
 </body>
 </html>
